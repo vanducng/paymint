@@ -94,12 +94,22 @@ func newInvoiceAddCmd() *cobra.Command {
 			if err := s.ledger.AddInvoice(inv); err != nil {
 				return err
 			}
-			op := pending.NewOp(pending.OpInvoiceAdd, inv)
-			if err := s.Save(op); err != nil {
+			// Save the ledger once (carries the invoice + all lines) and then
+			// queue one op per row so the sheet's op_id column is unique per row.
+			invShell := *inv
+			invShell.Lines = nil
+			invOp := pending.NewOp(pending.OpInvoiceAdd, &invShell)
+			if err := s.Save(invOp); err != nil {
 				return err
 			}
-			cmd.Printf("added invoice %s (%d lines, total %s) — queued op %s\n",
-				inv.ID, len(inv.Lines), money.FormatUSD(inv.TotalCents), op.OpID)
+			for _, ln := range inv.Lines {
+				lineOp := pending.NewOp(pending.OpInvoiceLineAdd, ln)
+				if err := pending.Append(s.files.pendingPath, lineOp); err != nil {
+					return fmt.Errorf("append line op: %w", err)
+				}
+			}
+			cmd.Printf("added invoice %s (%d lines, total %s) — queued op %s + %d line ops\n",
+				inv.ID, len(inv.Lines), money.FormatUSD(inv.TotalCents), invOp.OpID, len(inv.Lines))
 			return nil
 		},
 	}
