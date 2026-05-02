@@ -14,6 +14,16 @@ func NewRootCmd() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: false,
 	}
-	root.AddCommand(newVersionCmd())
+	root.PersistentFlags().String("data-dir", "",
+		"data directory (default: $PAYMINT_DATA_DIR > $XDG_DATA_HOME/paymint > ~/.local/share/paymint)")
+
+	root.AddCommand(
+		newVersionCmd(),
+		newInitCmd(),
+		newCompanyCmd(),
+		newContractCmd(),
+		newInvoiceCmd(),
+		newPaymentCmd(),
+	)
 	return root
 }
