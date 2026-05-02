@@ -1,0 +1,73 @@
+version: 2
+
+project_name: paymint
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: paymint
+    main: ./cmd/paymint
+    binary: paymint
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/vanducng/paymint/internal/version.Version={{.Version}}
+      - -X github.com/vanducng/paymint/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/vanducng/paymint/internal/version.Date={{.Date}}
+
+archives:
+  - id: paymint
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - docs/**/*
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "merge "
+
+release:
+  github:
+    owner: vanducng
+    name: paymint
+  draft: false
+  prerelease: auto
+  name_template: "paymint {{ .Version }}"
+  header: |
+    Built from `{{ .Commit }}` on {{ .Date }}.
+
+    Install:
+    ```bash
+    go install github.com/vanducng/paymint@{{ .Tag }}
+    ```
+  footer: |
+    See [CHANGELOG.md](https://github.com/vanducng/paymint/blob/main/CHANGELOG.md) for the full notes.
