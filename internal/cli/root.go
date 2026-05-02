@@ -26,6 +26,7 @@ func NewRootCmd() *cobra.Command {
 		newPaymentCmd(),
 		newAuthCmd(),
 		newSyncCmd(),
+		newPDFCmd(),
 	)
 	return root
 }
