@@ -1,0 +1,13 @@
+/bin/
+/dist/
+/paymint
+*.test
+*.out
+coverage.out
+.paymint/
+.DS_Store
+
+# Local-only working dirs (never committed)
+/plans/
+/docs/scratch/
+.claude/
