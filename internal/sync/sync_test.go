@@ -36,6 +36,8 @@ func newFakeSheets() *fakeSheets {
 	return f
 }
 
+func (f *fakeSheets) EnsureTabs(_ context.Context, _ string, _ []string) error { return nil }
+
 func (f *fakeSheets) GetTab(_ context.Context, _ string, tab string) ([][]any, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

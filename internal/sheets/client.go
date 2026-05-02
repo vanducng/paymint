@@ -12,6 +12,7 @@ import (
 // Client is the minimal interface sync needs. Backed by Service in production
 // and by a fake in tests so we can run the full algorithm offline.
 type Client interface {
+	EnsureTabs(ctx context.Context, spreadsheetID string, tabNames []string) error
 	GetTab(ctx context.Context, spreadsheetID, tabName string) ([][]any, error)
 	EnsureHeader(ctx context.Context, spreadsheetID, tabName string, header []string) error
 	AppendRows(ctx context.Context, spreadsheetID, tabName string, rows [][]any) error
@@ -31,6 +32,42 @@ func NewService(ctx context.Context, hc *http.Client) (*Service, error) {
 		return nil, fmt.Errorf("sheets.NewService: %w", err)
 	}
 	return &Service{svc: svc}, nil
+}
+
+// EnsureTabs adds any missing tabs to the spreadsheet via batchUpdate.
+// Idempotent — existing tabs are skipped.
+func (s *Service) EnsureTabs(ctx context.Context, spreadsheetID string, tabNames []string) error {
+	meta, err := s.svc.Spreadsheets.Get(spreadsheetID).Context(ctx).Do()
+	if err != nil {
+		return fmt.Errorf("get spreadsheet metadata: %w", err)
+	}
+	have := make(map[string]bool, len(meta.Sheets))
+	for _, sh := range meta.Sheets {
+		if sh != nil && sh.Properties != nil {
+			have[sh.Properties.Title] = true
+		}
+	}
+	var requests []*sheets.Request
+	for _, name := range tabNames {
+		if have[name] {
+			continue
+		}
+		requests = append(requests, &sheets.Request{
+			AddSheet: &sheets.AddSheetRequest{
+				Properties: &sheets.SheetProperties{Title: name},
+			},
+		})
+	}
+	if len(requests) == 0 {
+		return nil
+	}
+	_, err = s.svc.Spreadsheets.BatchUpdate(spreadsheetID, &sheets.BatchUpdateSpreadsheetRequest{
+		Requests: requests,
+	}).Context(ctx).Do()
+	if err != nil {
+		return fmt.Errorf("batch-update tabs: %w", err)
+	}
+	return nil
 }
 
 // GetTab returns every row of the named tab, header row included.

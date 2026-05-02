@@ -65,9 +65,14 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 
 	res := &Result{}
 	for attempt := 0; attempt <= MaxRevisionRetries; attempt++ {
-		preVer, err := cfg.Drive.GetVersion(ctx, cfg.SpreadsheetID)
-		if err != nil {
-			return res, fmt.Errorf("drive version pre: %w", err)
+		preVer, preErr := cfg.Drive.GetVersion(ctx, cfg.SpreadsheetID)
+		if preErr != nil {
+			// Drive may legitimately 404 when the user opened the sheet via a
+			// sharing link but never added it to "My Drive". Sheets API can
+			// still read/write the file. Degrade gracefully (Red Team F11 is
+			// best-effort — concurrent-edit detection drops to "none" for
+			// this run; surface the trade-off in setup docs).
+			logf(cfg.Logger, "warn: drive version unavailable (%v) — concurrent-edit protection disabled\n", preErr)
 		}
 
 		// Pull the sheet into a fresh ledger, save dirty shards, capture paths.
@@ -85,6 +90,9 @@ func Run(ctx context.Context, cfg Config) (*Result, error) {
 		}
 		res.PushedOps += pushed
 
+		if preErr != nil { // skip F11 retry loop if Drive is unreachable
+			break
+		}
 		postVer, err := cfg.Drive.GetVersion(ctx, cfg.SpreadsheetID)
 		if err != nil {
 			return res, fmt.Errorf("drive version post: %w", err)
@@ -134,6 +142,9 @@ func commit(cfg Config, res *Result) error {
 // pull walks every tab, sanitises rows, and merges into a ledger. Returns
 // the new ledger plus the count of pulled rows (header excluded).
 func pull(ctx context.Context, cfg Config) (*ledger.Ledger, int, []string, error) {
+	if err := cfg.Sheets.EnsureTabs(ctx, cfg.SpreadsheetID, sheets.PullOrder); err != nil {
+		return nil, 0, nil, fmt.Errorf("ensure tabs: %w", err)
+	}
 	l := ledger.New()
 	var totalRows int
 	for _, tab := range sheets.PullOrder {

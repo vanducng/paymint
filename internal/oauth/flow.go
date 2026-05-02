@@ -13,14 +13,25 @@ import (
 )
 
 // Scopes paymint needs.
+//
+// Note on F6 trade-off: the plan originally specified `drive.file` to grant
+// per-file access only. In practice that scope only covers files the app
+// itself created or the user picks via Google's file picker — neither
+// applies to a pre-existing user-owned sheet that paymint wants to sync.
+// For v0.1 we use the narrower-of-the-practical-options:
+//   - spreadsheets — read/write all the user's Sheets
+//   - drive.metadata.readonly — needed for the revision-counter check
+//
+// These are still less broad than full `drive` and let paymint operate on
+// any existing sheet without picker integration. Document in setup.md.
 const (
-	ScopeDriveFile     = "https://www.googleapis.com/auth/drive.file"
+	ScopeSpreadsheets  = "https://www.googleapis.com/auth/spreadsheets"
 	ScopeDriveMetadata = "https://www.googleapis.com/auth/drive.metadata.readonly"
 )
 
-// DefaultScopes returns the minimum scope set per Red Team F6.
+// DefaultScopes returns the scope set used for authorisation.
 func DefaultScopes() []string {
-	return []string{ScopeDriveFile, ScopeDriveMetadata}
+	return []string{ScopeSpreadsheets, ScopeDriveMetadata}
 }
 
 // ClientCreds holds the static client identifiers from a Google Cloud OAuth
