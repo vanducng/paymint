@@ -11,3 +11,5 @@ coverage.out
 /plans/
 /docs/scratch/
 .claude/
+
+.secrets
