@@ -8,9 +8,6 @@ on:
 permissions:
   contents: read
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
   test:
     name: test (${{ matrix.os }})
@@ -37,7 +34,7 @@ jobs:
         with:
           go-version: '1.25'
           cache: true
-      - uses: golangci/golangci-lint-action@v8
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: v2.7
 
