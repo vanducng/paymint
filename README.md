@@ -39,20 +39,21 @@ The Google Sheet stays canonical: edit it directly when you want, the next `paym
 
 ## Install
 
+**One-liner (linux + macOS, amd64 + arm64):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vanducng/paymint/main/install.sh | bash
+```
+
+Auto-detects OS/arch, downloads the latest release tarball, verifies its SHA-256 against `checksums.txt`, and installs to `/usr/local/bin`. Pin a version with `VERSION=v0.1.0`, install elsewhere with `PREFIX="$HOME/.local/bin"`.
+
+**From source (Go 1.25+):**
+
 ```bash
 go install github.com/vanducng/paymint/cmd/paymint@latest
 ```
 
-Or grab a prebuilt binary from the [latest release](https://github.com/vanducng/paymint/releases/latest):
-
-```bash
-# macOS arm64 example
-curl -L https://github.com/vanducng/paymint/releases/latest/download/paymint_0.1.0_darwin_arm64.tar.gz | tar -xz
-sudo mv paymint /usr/local/bin/
-paymint version
-```
-
-Available archives: `linux_amd64`, `linux_arm64`, `darwin_amd64`, `darwin_arm64`. Requires Go 1.25+ to build from source.
+**Manual:** grab the archive for your platform from [Releases](https://github.com/vanducng/paymint/releases/latest) — `linux_amd64`, `linux_arm64`, `darwin_amd64`, `darwin_arm64`.
 
 ---
 
