@@ -11,5 +11,6 @@ coverage.out
 /plans/
 /docs/scratch/
 .claude/
+.mcp.json
 
 .secrets
