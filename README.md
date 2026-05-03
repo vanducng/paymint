@@ -113,6 +113,10 @@ paymint --data-dir ~/paymint-data pdf --invoice INV-abs-202604
 
 ## How it works
 
+<p align="center">
+  <img src="docs/assets/architecture.png" alt="paymint architecture — CLI on top, pure-Go core, sync orchestrator bridging local YAML/git and Google Sheets/Drive, plus PDF output" width="900"/>
+</p>
+
 ```
 cmd/paymint  →  internal/cli (cobra)
                   ↓
