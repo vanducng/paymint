@@ -46,14 +46,7 @@ snapshot:
   version_template: "{{ incpatch .Version }}-next"
 
 changelog:
-  use: github
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - "^chore:"
-      - "merge "
+  disable: true
 
 release:
   github:
@@ -63,11 +56,20 @@ release:
   prerelease: auto
   name_template: "paymint {{ .Version }}"
   header: |
-    Built from `{{ .Commit }}` on {{ .Date }}.
+    Built from `{{ .ShortCommit }}` on {{ .Date }}.
 
-    Install:
+    ## Install
+
+    **One-liner:**
     ```bash
-    go install github.com/vanducng/paymint@{{ .Tag }}
+    curl -fsSL https://raw.githubusercontent.com/vanducng/paymint/main/install.sh | bash
     ```
+
+    **From source:**
+    ```bash
+    go install github.com/vanducng/paymint/cmd/paymint@{{ .Tag }}
+    ```
+
+    **Manual:** download the appropriate archive below.
   footer: |
-    See [CHANGELOG.md](https://github.com/vanducng/paymint/blob/main/CHANGELOG.md) for the full notes.
+    See [CHANGELOG.md](https://github.com/vanducng/paymint/blob/main/CHANGELOG.md) for the full release notes.
